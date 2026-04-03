@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediSphere Health — Platform Solution Design</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #12110f;
+    --ink2: #3d3a34;
+    --ink3: #7a7570;
+    --paper: #faf8f4;
+    --paper2: #f1ede5;
+    --paper3: #e8e2d6;
+    --teal: #0f7360;
+    --teal-light: #d4f0e8;
+    --teal-mid: #1d9e75;
+    --purple: #534ab7;
+    --purple-light: #eeedfe;
+    --coral: #c94a28;
+    --coral-light: #faeee9;
+    --amber: #a86b0a;
+    --amber-light: #fdf3dd;
+    --blue: #185fa5;
+    --blue-light: #e6f1fb;
+    --red: #a32d2d;
+    --red-light: #fcebeb;
+    --green: #3b6d11;
+    --green-light: #eaf3de;
+    --rule: #e0d9ce;
+    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-serif: 'DM Serif Display', Georgia, serif;
+    --font-mono: 'DM Mono', 'Courier New', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── Navigation ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--ink);
+    color: #fff;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 52px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .nav-brand {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: #fff;
+    white-space: nowrap;
+    margin-right: 2rem;
+    flex-shrink: 0;
+  }
+  .nav-brand span { color: var(--teal-mid); }
+  nav a {
+    color: rgba(255,255,255,0.65);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 0 14px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  nav a:hover, nav a.active { color: #fff; border-bottom-color: var(--teal-mid); }
+
+  /* ── Hero ── */
+  .hero {
+    background: var(--ink);
+    color: #fff;
+    padding: 5rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 60px,
+      rgba(255,255,255,0.015) 60px,
+      rgba(255,255,255,0.015) 61px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 60px,
+      rgba(255,255,255,0.015) 60px,
+      rgba(255,255,255,0.015) 61px
+    );
+  }
+  .hero-inner { position: relative; max-width: 900px; margin: 0 auto; }
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--teal-mid);
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    font-weight: 400;
+  }
+  .hero h1 em { color: var(--teal-mid); font-style: italic; }
+  .hero-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+    max-width: 620px;
+    margin-bottom: 2.5rem;
+  }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .tag-teal { background: rgba(29,158,117,0.2); color: var(--teal-mid); }
+  .tag-purple { background: rgba(83,74,183,0.25); color: #a09fff; }
+  .tag-amber { background: rgba(168,107,10,0.25); color: #f5c76e; }
+  .tag-coral { background: rgba(201,74,40,0.25); color: #f5a088; }
+  .tag-blue { background: rgba(24,95,165,0.25); color: #80b8f0; }
+
+  /* ── Layout ── */
+  .page { max-width: 960px; margin: 0 auto; padding: 0 2rem 4rem; }
+
+  section { padding-top: 4rem; border-top: 1px solid var(--rule); margin-top: 4rem; }
+  section:first-child { border-top: none; margin-top: 0; }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--ink3);
+    margin-bottom: 0.5rem;
+  }
+  h2 {
+    font-family: var(--font-serif);
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 400;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink2);
+    margin: 2rem 0 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 1.25rem 0 0.4rem;
+  }
+  p { margin-bottom: 1rem; color: var(--ink2); }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── Cards ── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 1.5rem 0; }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+  .card-accent { border-left: 3px solid; padding-left: 1.1rem; }
+  .card-teal { border-left-color: var(--teal); }
+  .card-purple { border-left-color: var(--purple); }
+  .card-amber { border-left-color: var(--amber); }
+  .card-coral { border-left-color: var(--coral); }
+  .card-blue { border-left-color: var(--blue); }
+  .card-red { border-left-color: var(--red); }
+
+  .card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    font-size: 15px;
+  }
+  .card h4 { font-size: 13px; margin: 0 0 0.3rem; }
+  .card p { font-size: 13px; margin: 0; }
+
+  /* ── Service table ── */
+  .svc-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 13px; }
+  .svc-table th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--ink3);
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .svc-table td { padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .svc-table tr:last-child td { border-bottom: none; }
+  .svc-table tr:hover td { background: var(--paper2); }
+  .pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 1px;
+  }
+  .pill-teal { background: var(--teal-light); color: var(--teal); }
+  .pill-purple { background: var(--purple-light); color: var(--purple); }
+  .pill-amber { background: var(--amber-light); color: var(--amber); }
+  .pill-coral { background: var(--coral-light); color: var(--coral); }
+  .pill-blue { background: var(--blue-light); color: var(--blue); }
+  .pill-red { background: var(--red-light); color: var(--red); }
+  .pill-green { background: var(--green-light); color: var(--green); }
+  .pill-gray { background: var(--paper2); color: var(--ink3); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: var(--ink);
+    color: #c8c2b4;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .code-block .kw { color: #a09fff; }
+  .code-block .str { color: #8ec891; }
+  .code-block .cm { color: #6b6560; }
+  .code-block .fn { color: #f5c76e; }
+  .code-block .cls { color: #80b8f0; }
+  .code-block .num { color: #f5a088; }
+
+  /* ── RBAC matrix ── */
+  .rbac-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 1.5rem 0; }
+  .rbac-table th {
+    background: var(--ink);
+    color: rgba(255,255,255,0.8);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .rbac-table th:first-child { text-align: left; }
+  .rbac-table td { padding: 8px 10px; border-bottom: 1px solid var(--rule); text-align: center; }
+  .rbac-table td:first-child { text-align: left; font-weight: 600; }
+  .rbac-table tr:nth-child(even) td { background: var(--paper2); }
+  .check { color: var(--teal); font-weight: 700; }
+  .cross { color: var(--red); opacity: 0.4; }
+  .partial { color: var(--amber); font-weight: 700; }
+
+  /* ── API contract boxes ── */
+  .api-block {
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+  .api-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--paper2);
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .method {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .method-get { background: var(--blue-light); color: var(--blue); }
+  .method-post { background: var(--green-light); color: var(--green); }
+  .method-put { background: var(--amber-light); color: var(--amber); }
+  .method-del { background: var(--red-light); color: var(--red); }
+  .api-path { font-weight: 500; color: var(--ink2); }
+  .api-desc { font-size: 11px; color: var(--ink3); margin-left: auto; }
+  .api-body { padding: 12px 14px; font-size: 12px; color: var(--ink3); }
+
+  /* ── Offline strategy ── */
+  .sync-step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 1rem;
+    align-items: flex-start;
+  }
+  .sync-num {
+    width: 28px;
+    height: 28px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .sync-content h4 { margin-top: 0; font-size: 14px; }
+  .sync-content p { font-size: 13px; margin: 0; }
+
+  /* ── Data model ── */
+  .erd-table {
+    display: inline-block;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 6px;
+    min-width: 180px;
+    vertical-align: top;
+    font-size: 12px;
+  }
+  .erd-header {
+    background: var(--ink);
+    color: #fff;
+    padding: 6px 12px;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .erd-header.teal { background: var(--teal); }
+  .erd-header.purple { background: var(--purple); }
+  .erd-header.amber { background: #7a4e00; }
+  .erd-header.coral { background: var(--coral); }
+  .erd-header.blue { background: var(--blue); }
+  .erd-row {
+    padding: 4px 12px;
+    border-top: 1px solid var(--rule);
+    color: var(--ink2);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .erd-row:first-of-type { border-top: none; }
+  .erd-pk { color: var(--amber); font-weight: 700; }
+  .erd-fk { color: var(--blue); }
+  .erd-type { color: var(--ink3); font-size: 11px; }
+  .erd-wrap { display: flex; flex-wrap: wrap; margin: 1rem 0; }
+
+  /* ── AI section ── */
+  .ai-card {
+    background: linear-gradient(135deg, var(--ink) 0%, #1a1a2e 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+  }
+  .ai-card h4 { color: #a09fff; margin-top: 0; font-size: 14px; letter-spacing: 0.03em; }
+  .ai-card p { color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 0.5rem; }
+  .ai-card .guardrail {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 2px;
+    background: rgba(160,159,255,0.15);
+    color: #a09fff;
+  }
+
+  /* ── NFR grid ── */
+  .nfr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 1.5rem 0; }
+  .nfr-card {
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 1.1rem;
+    background: var(--paper);
+  }
+  .nfr-card h4 { font-size: 13px; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 8px; }
+  .nfr-card p { font-size: 12px; margin: 0; color: var(--ink3); }
+  .nfr-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── Callout ── */
+  .callout {
+    border-left: 3px solid;
+    padding: 1rem 1.25rem;
+    border-radius: 0 8px 8px 0;
+    margin: 1.5rem 0;
+    font-size: 13px;
+  }
+  .callout-teal { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+  .callout-amber { border-color: var(--amber); background: var(--amber-light); color: var(--amber); }
+  .callout-red { border-color: var(--red); background: var(--red-light); color: var(--red); }
+  .callout strong { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+  .callout p { color: inherit; margin: 0; }
+
+  /* ── Two-col ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 1rem 0; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ── Flow steps ── */
+  .flow { display: flex; flex-direction: column; gap: 0; margin: 1rem 0; }
+  .flow-step {
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    position: relative;
+  }
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 44px;
+    bottom: 0;
+    width: 1px;
+    background: var(--rule);
+  }
+  .flow-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 3px;
+    position: relative;
+    z-index: 1;
+  }
+  .flow-text h4 { font-size: 14px; margin-bottom: 2px; }
+  .flow-text p { font-size: 13px; margin: 0; }
+
+  /* ── KPI badges ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 1.5rem 0; }
+  .kpi {
+    background: var(--paper2);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .kpi-num { font-family: var(--font-serif); font-size: 28px; color: var(--ink); line-height: 1; margin-bottom: 4px; }
+  .kpi-label { font-size: 11px; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+
+  /* ── Print / responsive ── */
+  @media print {
+    nav { display: none; }
+    .hero { background: #12110f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  @media (max-width: 480px) {
+    .page { padding: 0 1rem 3rem; }
+    h2 { font-size: 1.6rem; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── TOC ── */
+  #toc-panel {
+    background: var(--paper2);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+  #toc-panel h3 { margin-top: 0; border: none; padding: 0 0 0.5rem; font-size: 12px; }
+  #toc-panel ol { padding-left: 1.2rem; }
+  #toc-panel li { font-size: 13px; color: var(--ink3); margin-bottom: 4px; }
+  #toc-panel a { color: var(--teal); text-decoration: none; }
+  #toc-panel a:hover { text-decoration: underline; }
+
+  ul.check-list { list-style: none; padding: 0; margin: 0.75rem 0; }
+  ul.check-list li { font-size: 13px; color: var(--ink2); padding: 4px 0 4px 24px; position: relative; }
+  ul.check-list li::before { content: '✓'; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Medi<span>Sphere</span></div>
+  <a href="#architecture">Architecture</a>
+  <a href="#services">Services</a>
+  <a href="#data">Data Model</a>
+  <a href="#api">API Contracts</a>
+  <a href="#rbac">Security</a>
+  <a href="#ui">UI Flows</a>
+  <a href="#offline">Offline Sync</a>
+  <a href="#ai">AI Features</a>
+  <a href="#bi">BI Reports</a>
+  <a href="#nfr">NFR</a>
+  <a href="#deploy">Deployment</a>
+  <a href="#testing">Testing</a>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Solution Design · Production-Grade</div>
+    <h1>Omni-Channel Pharmacy <em>Operations</em> Platform</h1>
+    <p class="hero-sub">A full architecture, implementation plan, and design system for MediSphere Health — 42 stores, 1 distribution hub, telehealth fulfilment, and AI-assisted operations across mixed-connectivity environments.</p>
+    <div class="hero-tags">
+      <span class="tag tag-teal">Python · FastAPI</span>
+      <span class="tag tag-teal">PostgreSQL</span>
+      <span class="tag tag-purple">Microservices</span>
+      <span class="tag tag-amber">Offline-first</span>
+      <span class="tag tag-coral">Agentic AI</span>
+      <span class="tag tag-blue">RBAC · JWT</span>
+      <span class="tag tag-teal">React PWA</span>
+      <span class="tag tag-purple">Redis Streams</span>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- TOC -->
+  <div id="toc-panel">
+    <h3>Table of Contents</h3>
+    <ol>
+      <li><a href="#architecture">Architecture Overview & Service Decomposition</a></li>
+      <li><a href="#services">Microservice Descriptions & Tech Stack</a></li>
+      <li><a href="#data">Data Model & PostgreSQL Schema</a></li>
+      <li><a href="#api">API Contracts</a></li>
+      <li><a href="#rbac">Security, RBAC & Audit</a></li>
+      <li><a href="#ui">Key UI Flows</a></li>
+      <li><a href="#offline">Offline Sync Strategy</a></li>
+      <li><a href="#ai">AI & Analytics Integration</a></li>
+      <li><a href="#bi">BI Dashboards</a></li>
+      <li><a href="#nfr">Non-Functional Requirements</a></li>
+      <li><a href="#deploy">Deployment & Infrastructure</a></li>
+      <li><a href="#testing">Testing & Observability</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. Architecture -->
+  <section id="architecture">
+    <div class="section-label">Section 01</div>
+    <h2>Architecture Overview</h2>
+
+    <p>MediSphere uses a <strong>domain-driven microservices architecture</strong> where each service owns its data, exposes versioned REST/WebSocket APIs, and communicates asynchronously via Redis Streams for all non-transactional events. The entire stack is Python-first with FastAPI services, PostgreSQL as the system of record, and a React 18 PWA frontend.</p>
+
+    <p>The platform is divided into six bounded contexts: <em>Identity & Access, Inventory & Stock, Sales & Billing, Prescription & Clinical, Distribution & Logistics</em>, and <em>Intelligence (AI/BI)</em>. Each context maps to one or more microservices with a dedicated PostgreSQL schema (separate schemas within one cluster for small-team operability, promotable to separate databases under load).</p>
+
+    <div class="callout callout-teal">
+      <strong>Design principle</strong>
+      <p>Keep the engineering team's cognitive load low. Same stack (FastAPI + SQLAlchemy + Alembic + Celery) everywhere. One Kubernetes cluster. Separate schemas, not databases, until load demands it. Optimise for <em>maintainability</em> first, then performance.</p>
+    </div>
+
+    <h3>Bounded Contexts & Service Map</h3>
+
+    <table class="svc-table">
+      <thead>
+        <tr>
+          <th>Context</th>
+          <th>Services</th>
+          <th>Tech</th>
+          <th>DB Schema</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Identity & Access</strong></td>
+          <td><span class="pill pill-purple">auth-svc</span> <span class="pill pill-purple">audit-svc</span></td>
+          <td>FastAPI, python-jose, passlib, TOTP (pyotp)</td>
+          <td><code>iam</code></td>
+        </tr>
+        <tr>
+          <td><strong>Inventory & Stock</strong></td>
+          <td><span class="pill pill-teal">inventory-svc</span> <span class="pill pill-teal">product-svc</span></td>
+          <td>FastAPI, SQLAlchemy, Celery beat (expiry checks)</td>
+          <td><code>inventory</code></td>
+        </tr>
+        <tr>
+          <td><strong>Sales & Billing</strong></td>
+          <td><span class="pill pill-teal">pos-svc</span> <span class="pill pill-teal">returns-svc</span></td>
+          <td>FastAPI, Stripe/Razorpay adapter, PDF receipts (WeasyPrint)</td>
+          <td><code>sales</code></td>
+        </tr>
+        <tr>
+          <td><strong>Prescription & Clinical</strong></td>
+          <td><span class="pill pill-coral">prescription-svc</span> <span class="pill pill-coral">telehealth-svc</span></td>
+          <td>FastAPI, FHIR R4 adapter, dosage logic, drug-interaction check</td>
+          <td><code>clinical</code></td>
+        </tr>
+        <tr>
+          <td><strong>Distribution & Logistics</strong></td>
+          <td><span class="pill pill-amber">replenishment-svc</span> <span class="pill pill-amber">transfer-svc</span></td>
+          <td>FastAPI, Celery workers, PDF purchase orders</td>
+          <td><code>logistics</code></td>
+        </tr>
+        <tr>
+          <td><strong>Intelligence</strong></td>
+          <td><span class="pill pill-coral">forecast-svc</span> <span class="pill pill-coral">anomaly-svc</span> <span class="pill pill-coral">nlquery-svc</span> <span class="pill pill-blue">bi-svc</span></td>
+          <td>FastAPI, scikit-learn, Prophet, Anthropic Claude API, DuckDB, Metabase</td>
+          <td><code>analytics</code></td>
+        </tr>
+        <tr>
+          <td><strong>Platform / Infra</strong></td>
+          <td><span class="pill pill-gray">api-gateway</span> <span class="pill pill-gray">event-bus</span> <span class="pill pill-gray">sync-svc</span></td>
+          <td>Nginx + FastAPI gateway, Redis 7 Streams, offline CRDTs</td>
+          <td>N/A (stateless)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Frontend Architecture</h3>
+    <div class="card-grid">
+      <div class="card card-accent card-teal">
+        <h4>React 18 PWA</h4>
+        <p>Single codebase for web, tablet, and mobile. Service Worker for offline caching. IndexedDB as local operation queue. Responsive breakpoints at 480 / 768 / 1024px.</p>
+      </div>
+      <div class="card card-accent card-purple">
+        <h4>Role-adaptive layout</h4>
+        <p>Shell renders different navigation trees based on JWT role claim. Auditor gets read-only portal. Counter staff gets POS-optimised touch layout. Admin gets full management dashboard.</p>
+      </div>
+      <div class="card card-accent card-amber">
+        <h4>State management</h4>
+        <p>Zustand for global store. React Query v5 for all server state, stale-while-revalidate, optimistic updates for POS transactions. Offline queue drains on reconnect.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Services -->
+  <section id="services">
+    <div class="section-label">Section 02</div>
+    <h2>Microservice Descriptions</h2>
+
+    <h3>auth-svc — Identity & Access</h3>
+    <div class="code-block">
+<span class="cm"># auth_svc/main.py — key routes</span><br>
+<span class="kw">POST</span>  /auth/login          <span class="cm"># email+password → access_token (JWT, 15 min) + refresh_token (7 days)</span><br>
+<span class="kw">POST</span>  /auth/refresh         <span class="cm"># rotate refresh token, issue new access token</span><br>
+<span class="kw">POST</span>  /auth/totp/verify     <span class="cm"># second factor for admin/pharmacist roles</span><br>
+<span class="kw">POST</span>  /auth/logout          <span class="cm"># revoke refresh token (stored in Redis blocklist)</span><br>
+<span class="kw">GET</span>   /auth/me              <span class="cm"># decode + enrich token claims with branch_id, permissions</span><br>
+<span class="kw">POST</span>  /auth/impersonate      <span class="cm"># super-admin only; bounded 1-hour token, fully audited</span><br>
+    </div>
+
+    <p>JWT access tokens carry: <code>sub</code> (user_id), <code>role</code>, <code>branch_id</code>, <code>permissions[]</code> (fine-grained), <code>session_id</code> (for audit trail). All sensitive operations validate the <code>session_id</code> against Redis to support instant revocation.</p>
+
+    <h3>inventory-svc — Stock Management</h3>
+    <p>The inventory service uses <strong>lot-based tracking</strong> with expiry dates. Each stock movement is an immutable ledger entry (similar to double-entry bookkeeping) — stock is never mutated in place, only new movements appended. Current stock levels are a materialised view (refreshed on write and by scheduled Celery task).</p>
+
+    <div class="code-block">
+<span class="cm"># Ledger-based inventory — no direct stock mutations</span><br>
+<span class="kw">class</span> <span class="cls">StockMovement</span>(Base):<br>
+    __tablename__ = <span class="str">'stock_movements'</span><br>
+    id:          <span class="cls">UUID</span>
+    branch_id:   <span class="cls">UUID</span>  <span class="cm"># FK → branches</span><br>
+    product_id:  <span class="cls">UUID</span>  <span class="cm"># FK → products</span><br>
+    lot_id:      <span class="cls">UUID</span>  <span class="cm"># FK → lots (barcode, expiry, supplier)</span><br>
+    movement_type: <span class="cls">Enum</span>  <span class="cm"># RECEIVE|SALE|RETURN|TRANSFER_OUT|TRANSFER_IN|ADJUSTMENT|SHRINKAGE</span><br>
+    qty:         <span class="cls">Decimal</span>  <span class="cm"># signed: positive = in, negative = out</span><br>
+    ref_id:      <span class="cls">UUID</span>  <span class="cm"># FK to sale/PO/transfer that caused movement</span><br>
+    performed_by: <span class="cls">UUID</span>
+    created_at:  <span class="cls">DateTime</span>
+    <span class="cm"># Indexes: (branch_id, product_id), (created_at DESC), (lot_id)</span>
+    </div>
+
+    <h3>pos-svc — Point of Sale</h3>
+    <p>All sales go through a two-phase commit pattern: <strong>HOLD → CONFIRM</strong>. A HOLD reserves stock optimistically; CONFIRM finalises payment and commits the ledger. This prevents double-sell at busy counters and supports offline operation — offline devices accumulate HOLDs locally, which resolve on reconnect with CRDT merge.</p>
+
+    <h3>replenishment-svc — Procurement & Transfers</h3>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-icon">1</div>
+        <div class="flow-text">
+          <h4>Trigger</h4>
+          <p>Celery beat runs every 15 min comparing current stock vs reorder point (per product, per branch). AI forecast service adjusts reorder points weekly.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">2</div>
+        <div class="flow-text">
+          <h4>Draft order</h4>
+          <p>System generates draft purchase order grouped by supplier. Branch manager reviews and approves via dashboard. Optional: auto-approve below configurable threshold.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">3</div>
+        <div class="flow-text">
+          <h4>Branch-to-branch transfer</h4>
+          <p>If supplier lead time > urgency threshold, system checks sister branches for surplus. Transfer request sent; receiving branch confirms availability; distribution hub coordinates.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">4</div>
+        <div class="flow-text">
+          <h4>Fulfilment & GRN</h4>
+          <p>Goods Receipt Note captured via barcode scan. Stock movements created for each received lot. Discrepancies flagged for manager review. Invoice matched automatically.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Data Model -->
+  <section id="data">
+    <div class="section-label">Section 03</div>
+    <h2>Data Model</h2>
+
+    <p>Six PostgreSQL schemas, each service owning its own. Cross-schema joins are forbidden at the application layer — services communicate via APIs or events, not shared SQL. Read models (materialised views, DuckDB) handle cross-domain analytics.</p>
+
+    <h3>Core Entities</h3>
+    <div class="erd-wrap">
+      <div class="erd-table">
+        <div class="erd-header teal">branches</div>
+        <div class="erd-row"><span class="erd-pk">id</span><span class="erd-type">uuid PK</span></div>
+        <div class="erd-row"><span>name</span><span class="erd-type">varchar</span></div>
+        <div class="erd-row"><span>type</span><span class="erd-type">enum</span></div>
+        <div class="erd-row"><span>region</span><span class="erd-type">varchar</span></div>
+        <div class="erd-row"><span>connectivity</span><span class="erd-type">enum</span></div>
+        <div class="erd-row"><span>timezone</span><span class="erd-type">varchar</span></div>
+      </div>
+      <div class="erd-table">
+        <div class="erd-header teal">products</div>
+        <div class="erd-row"><span class="erd-pk">id</span><span class="erd-type">uuid PK</span></div>
+        <div class="erd-row"><span>sku</span><span class="erd-type">varchar unique</span></div>
+        <div class="erd-row"><span>name</span><span class="erd-type">varchar</span></div>
+        <div class="erd-row"><span>category</span><span class="erd-type">varchar</span></div>
+        <div class="erd-row"><span>is_rx_only</span><span class="erd-type">boolean</span></div>
+        <div class="erd-row"><span>drug_schedule</span><span class="erd-type">varchar</span></div>
+        <div class="erd-row"><span>reorder_point</span><span class="erd-type">decimal</span></div>
+        <div class="erd-row"><span>unit_cost</span><span class="erd-type">decimal</span></div>
+      </div>
+      <div class="erd-table">
+        <div class="erd-header purple">users</div>
+        <div class="erd-row"><span class="erd-pk">id</span><span class="erd-type">uuid PK</span></div>
+        <div class="erd-row"><span>email</span><span class="erd-type">varchar unique</span></div>
+        <div class="erd-row"><span>role</span><span class="erd-type">enum</span></div>
+        <div class="erd-row"><span class="erd-fk">branch_id</span><span class="erd-type">uuid FK</span></div>
+        <div class="erd-row"><span>totp_secret</span><span class="erd-type">varchar enc</span></div>
+        <div class="erd-row"><span>is_active</span><span class="erd-type">boolean</span></div>
+      </div>
+      <div class="erd-table">
+        <div class="erd-header teal">stock_movements</div>
+        <div class="erd-row"><span class="erd-pk">id</span><span class="erd-type">uuid PK</span></div>
+        <div class="erd-row"><span class="erd-fk">branch_id</span><span class="erd-type">uuid FK</span></div>
+        <div class="erd-row"><span class="erd-fk">product_id</span><span class="erd-type">uuid FK</span></div>
+        <div class="erd-row"><span class="erd-fk">lot_id</span><span class="erd-type">uuid FK</span></div>
+        <div class="erd-row"><span>movement_type</span><span class="erd-type">enum</span></div>
+        <div class="erd-row"><span>qty</span><span class="erd-type">decimal</span></div>
+        <div class="erd-row"><span class="erd-fk">ref_id</span><span class="erd-type">uuid</span></div>
+        <div class="erd-row"><span>created_at</span><span class="erd-type">timestamptz</span></div>
+      </div>
+      <div class="erd-table">
+        <div class="erd-header amber">sales</div>
+        <div class="erd-row"><span class="erd-pk">id</span><span class="erd-type">uuid PK</span></div>
+        <div class="erd-row"><span class="erd-fk">branch_id</span><span class="erd-type">uuid FK</span></div>
+        <div class="erd-row"><span class="erd-fk">served_by</span><span class="erd-type">uuid FK</span></div>
+        <div class="erd-row"><span class="erd-fk">rx_id</span><span class="erd-type">uuid FK null</span></div>
+        <div class="erd-row"><span>status</span><span class="erd-type">enum</span></div>
+        <div class="erd-row"><span>total_amount</span><span class="erd-type">decimal</span></div>
+        <div class="erd-row"><span>payment_method</span><span class="erd-type">enum</span></div>
+        <div class="erd-row"><span>offline_id</span><span class="erd-type">uuid null</span></div>
+      </div>
+      <div class="erd-table">
+        <div class="erd-header coral">prescriptions</div>
+        <div class="erd-row"><span class="erd-pk">id</span><span class="erd-type">uuid PK</span></div>
+        <div class="erd-row"><span>patient_name</span><span class="erd-type">varchar</span></div>
+        <div class="erd-row"><span>prescriber_reg</span><span class="erd-type">varchar</span></div>
+        <div class="erd-row"><span>issue_date</span><span class="erd-type">date</span></div>
+        <div class="erd-row"><span>expiry_date</span><span class="erd-type">date</span></div>
+        <div class="erd-row"><span>verified_by</span><span class="erd-type">uuid FK</span></div>
+        <div class="erd-row"><span>status</span><span class="erd-type">enum</span></div>
+        <div class="erd-row"><span>rx_image_url</span><span class="erd-type">varchar enc</span></div>
+      </div>
+      <div class="erd-table">
+        <div class="erd-header blue">audit_log</div>
+        <div class="erd-row"><span class="erd-pk">id</span><span class="erd-type">uuid PK</span></div>
+        <div class="erd-row"><span class="erd-fk">user_id</span><span class="erd-type">uuid FK</span></div>
+        <div class="erd-row"><span>action</span><span class="erd-type">varchar</span></div>
+        <div class="erd-row"><span>resource</span><span class="erd-type">varchar</span></div>
+        <div class="erd-row"><span>resource_id</span><span class="erd-type">uuid</span></div>
+        <div class="erd-row"><span>before_state</span><span class="erd-type">jsonb</span></div>
+        <div class="erd-row"><span>after_state</span><span class="erd-type">jsonb</span></div>
+        <div class="erd-row"><span>ip_address</span><span class="erd-type">inet</span></div>
+        <div class="erd-row"><span>created_at</span><span class="erd-type">timestamptz</span></div>
+      </div>
+    </div>
+
+    <h3>Key Design Decisions</h3>
+    <ul class="check-list">
+      <li>All primary keys are UUID v7 (time-ordered) — sortable without performance penalty of random UUIDs on B-tree indexes.</li>
+      <li>All timestamps are <code>TIMESTAMPTZ</code> stored in UTC. Branch-local display handled in the application layer using <code>pytz</code>.</li>
+      <li>Sensitive fields (patient data, prescriber details, TOTP secrets) encrypted at rest using SQLAlchemy-Utils EncryptedType with AES-256.</li>
+      <li>Append-only <code>audit_log</code> table — never updated or deleted. Partitioned by month using PostgreSQL declarative partitioning.</li>
+      <li>PostgreSQL row-level security (RLS) policies enforce branch data isolation at the DB layer as a defence-in-depth measure.</li>
+      <li>All financial amounts stored as <code>NUMERIC(12,4)</code> — never FLOAT. Tax calculations performed server-side only.</li>
+    </ul>
+  </section>
+
+  <!-- 4. API Contracts -->
+  <section id="api">
+    <div class="section-label">Section 04</div>
+    <h2>API Contracts</h2>
+
+    <p>All services expose versioned REST APIs (<code>/api/v1/…</code>) with OpenAPI 3.1 schemas generated automatically by FastAPI. WebSocket channels used only for real-time stock updates and POS notifications. gRPC considered and rejected — REST + async events is sufficient for this scale and simpler to operate.</p>
+
+    <h3>Inventory Service</h3>
+
+    <div class="api-block">
+      <div class="api-header"><span class="method method-get">GET</span><span class="api-path">/api/v1/inventory/stock</span><span class="api-desc">Query stock levels with filters</span></div>
+      <div class="api-body">
+        <strong>Query params:</strong> branch_id, product_id, category, low_stock_only, expiring_within_days<br>
+        <strong>Response:</strong> { items: [ { product_id, sku, name, branch_id, qty_on_hand, reorder_point, lots: [{lot_id, expiry, qty}] } ] }<br>
+        <strong>Auth:</strong> All roles except unauthenticated
+      </div>
+    </div>
+
+    <div class="api-block">
+      <div class="api-header"><span class="method method-post">POST</span><span class="api-path">/api/v1/inventory/adjustments</span><span class="api-desc">Record stock adjustment</span></div>
+      <div class="api-body">
+        <strong>Body:</strong> { branch_id, product_id, lot_id, qty, reason: "DAMAGE|COUNT|EXPIRY", notes }<br>
+        <strong>Response:</strong> { movement_id, new_qty_on_hand }<br>
+        <strong>Auth:</strong> inventory_controller, branch_manager, pharmacy_admin · Triggers audit log
+      </div>
+    </div>
+
+    <div class="api-block">
+      <div class="api-header"><span class="method method-post">POST</span><span class="api-path">/api/v1/inventory/transfers</span><span class="api-desc">Request branch-to-branch transfer</span></div>
+      <div class="api-body">
+        <strong>Body:</strong> { from_branch_id, to_branch_id, items: [{product_id, lot_id, qty}], urgency, notes }<br>
+        <strong>Response:</strong> { transfer_id, status: "PENDING_APPROVAL" }<br>
+        <strong>Auth:</strong> branch_manager, pharmacy_admin
+      </div>
+    </div>
+
+    <h3>Sales / POS Service</h3>
+
+    <div class="api-block">
+      <div class="api-header"><span class="method method-post">POST</span><span class="api-path">/api/v1/sales/basket/hold</span><span class="api-desc">Reserve stock (Phase 1 of 2PC)</span></div>
+      <div class="api-body">
+        <strong>Body:</strong> { branch_id, items: [{product_id, lot_id, qty, unit_price}], rx_id?, offline_id? }<br>
+        <strong>Response:</strong> { hold_id, expires_at (5 min), items_confirmed: [], items_unavailable: [] }<br>
+        <strong>Notes:</strong> offline_id is a client-generated UUID for idempotency during sync
+      </div>
+    </div>
+
+    <div class="api-block">
+      <div class="api-header"><span class="method method-post">POST</span><span class="api-path">/api/v1/sales/basket/confirm</span><span class="api-desc">Finalise sale (Phase 2 of 2PC)</span></div>
+      <div class="api-body">
+        <strong>Body:</strong> { hold_id, payment_method, amount_tendered, discount_code? }<br>
+        <strong>Response:</strong> { sale_id, receipt_url, change_due, stock_movements[] }<br>
+        <strong>Auth:</strong> counter_staff, branch_manager, pharmacy_admin
+      </div>
+    </div>
+
+    <div class="api-block">
+      <div class="api-header"><span class="method method-post">POST</span><span class="api-path">/api/v1/sales/returns</span><span class="api-desc">Process return / refund</span></div>
+      <div class="api-body">
+        <strong>Body:</strong> { sale_id, items: [{sale_line_id, qty, reason}], refund_method }<br>
+        <strong>Response:</strong> { return_id, refund_amount, stock_movements[] }<br>
+        <strong>Auth:</strong> branch_manager, pharmacy_admin · Triggers anomaly check
+      </div>
+    </div>
+
+    <h3>Prescription Service</h3>
+
+    <div class="api-block">
+      <div class="api-header"><span class="method method-post">POST</span><span class="api-path">/api/v1/prescriptions</span><span class="api-desc">Create and verify prescription</span></div>
+      <div class="api-body">
+        <strong>Body:</strong> { patient_name, dob, prescriber_reg_no, issue_date, items: [{drug_name, strength, qty, repeats}], rx_image_base64 }<br>
+        <strong>Response:</strong> { rx_id, verification_status: "PENDING|VERIFIED|REJECTED", warnings: [] }<br>
+        <strong>Auth:</strong> pharmacist, pharmacy_admin
+      </div>
+    </div>
+
+    <h3>AI / Forecast Service</h3>
+
+    <div class="api-block">
+      <div class="api-header"><span class="method method-get">GET</span><span class="api-path">/api/v1/ai/forecast/demand</span><span class="api-desc">Demand forecast per SKU</span></div>
+      <div class="api-body">
+        <strong>Query:</strong> branch_id, product_id, horizon_days (7-90)<br>
+        <strong>Response:</strong> { forecast: [{date, qty_predicted, lower_ci, upper_ci}], model_version, confidence, explanation }<br>
+        <strong>Notes:</strong> explanation field always present — human-readable model reasoning
+      </div>
+    </div>
+
+    <div class="api-block">
+      <div class="api-header"><span class="method method-post">POST</span><span class="api-path">/api/v1/ai/query</span><span class="api-desc">Natural language operational query</span></div>
+      <div class="api-body">
+        <strong>Body:</strong> { question: "Which branches have paracetamol below reorder point?", context_branch_id? }<br>
+        <strong>Response:</strong> { answer: string, sql_used: string (audit), data: [], disclaimer }<br>
+        <strong>Notes:</strong> SQL always exposed for transparency; never executes DDL/DML
+      </div>
+    </div>
+
+    <div class="callout callout-amber">
+      <strong>API versioning strategy</strong>
+      <p>All breaking changes increment the version path segment (/v1 → /v2). Non-breaking additions (new optional fields, new endpoints) do not increment. Deprecation notice period: minimum 60 days. Old versions kept alive for at least 1 year to support branch devices on slow update cycles.</p>
+    </div>
+  </section>
+
+  <!-- 5. Security & RBAC -->
+  <section id="rbac">
+    <div class="section-label">Section 05</div>
+    <h2>Security & RBAC</h2>
+
+    <p>Five user roles, each with a carefully scoped permission set. Permissions are evaluated at two layers: API Gateway (coarse-grained, route-level) and individual service (fine-grained, resource-level including branch isolation checks).</p>
+
+    <h3>Role Matrix</h3>
+    <table class="rbac-table">
+      <thead>
+        <tr>
+          <th>Permission</th>
+          <th>Counter Staff</th>
+          <th>Branch Mgr</th>
+          <th>Inventory Ctrl</th>
+          <th>Pharmacy Admin</th>
+          <th>Auditor</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Create sale (OTC)</td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td></tr>
+        <tr><td>Create sale (Rx)</td><td class="cross">—</td><td class="partial">△</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td></tr>
+        <tr><td>Process return</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td></tr>
+        <tr><td>View stock (own branch)</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>View stock (all branches)</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Adjust stock</td><td class="cross">—</td><td class="partial">△</td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td></tr>
+        <tr><td>Approve PO / transfer</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td></tr>
+        <tr><td>View BI dashboards</td><td class="cross">—</td><td class="partial">△ own branch</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Manage users</td><td class="cross">—</td><td class="partial">△ own branch</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td></tr>
+        <tr><td>View audit log</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="partial">△ own branch</td><td class="check">✓ all</td></tr>
+        <tr><td>AI query interface</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓ read</td></tr>
+        <tr><td>Prescription verify</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;color:var(--ink3);">✓ = full access · △ = conditional (own branch / threshold) · — = denied</p>
+
+    <h3>Security Controls</h3>
+    <div class="card-grid">
+      <div class="card card-accent card-purple">
+        <h4>Authentication</h4>
+        <p>JWT (RS256) with 15-min access tokens. Mandatory TOTP for pharmacy_admin and pharmacist roles. Bcrypt password hashing (12 rounds). Account lockout after 5 failed attempts (15 min). Forced password rotation every 90 days.</p>
+      </div>
+      <div class="card card-accent card-teal">
+        <h4>Transport security</h4>
+        <p>TLS 1.3 enforced end-to-end. HSTS with 1-year max-age. Certificate pinning for mobile PWA. Internal service mesh uses mTLS. No HTTP fallback permitted.</p>
+      </div>
+      <div class="card card-accent card-amber">
+        <h4>Data protection</h4>
+        <p>AES-256 encryption for PHI/PII fields at rest. PostgreSQL RLS for row-level branch isolation. Secrets managed via Vault or cloud KMS — never in environment variables. S3/object storage encrypted at rest, pre-signed URLs only (1-hour expiry).</p>
+      </div>
+      <div class="card card-accent card-red">
+        <h4>Audit trail</h4>
+        <p>Every state-changing API call appends to audit_log with before/after JSONB snapshots. Audit log is append-only (no UPDATE/DELETE permissions). Tamper-evident via PostgreSQL trigger that blocks modifications. Auditor role has read-only cross-branch access.</p>
+      </div>
+      <div class="card card-accent card-coral">
+        <h4>Input validation</h4>
+        <p>Pydantic v2 models on all API inputs. SQL injection prevented by SQLAlchemy ORM only (no raw f-strings). File uploads validated by magic-bytes, not extension. Prescription images virus-scanned before storage.</p>
+      </div>
+      <div class="card card-accent card-blue">
+        <h4>Regulated access controls</h4>
+        <p>Scheduled drug dispensing requires dual-control: pharmacist authorisation + counter-staff confirmation. All controlled substance transactions flagged, timestamped, and reported to compliance module. Cannot be overridden offline.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. UI Flows -->
+  <section id="ui">
+    <div class="section-label">Section 06</div>
+    <h2>Key UI Flows</h2>
+
+    <h3>1 — POS Sale (Counter Staff)</h3>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-icon">1</div><div class="flow-text"><h4>Barcode scan or product search</h4><p>Staff scans barcode or types product name. Fuzzy search returns ranked results in &lt;200ms. Product shows price, stock level, Rx flag, and substitution suggestions from AI.</p></div></div>
+      <div class="flow-step"><div class="flow-icon">2</div><div class="flow-text"><h4>Basket build</h4><p>Items added to basket with automatic FEFO (First Expiry First Out) lot selection. Discount codes applied. Running total and tax breakdown shown in real time.</p></div></div>
+      <div class="flow-step"><div class="flow-icon">3</div><div class="flow-text"><h4>Rx validation gate</h4><p>If any item is Rx-only, system requires prescription lookup. If prescription not yet entered, counter staff calls pharmacist. Controlled substances require pharmacist fingerprint/PIN confirmation.</p></div></div>
+      <div class="flow-step"><div class="flow-icon">4</div><div class="flow-text"><h4>Payment</h4><p>Cash, card, UPI, or insurance. Amount tendered → change calculated. Receipt generated as PDF and/or SMS. Offline: payment stored locally, synced later.</p></div></div>
+      <div class="flow-step"><div class="flow-icon">5</div><div class="flow-text"><h4>Stock committed</h4><p>Stock ledger updated atomically with sale. If stock falls below reorder point, async event triggers replenishment workflow. Anomaly detection runs in background (no latency impact).</p></div></div>
+    </div>
+
+    <h3>2 — Inventory Count (Inventory Controller)</h3>
+    <p>Scheduled cycle count workflow: system generates count sheet by bay. Controller scans lots and enters physical quantities on mobile device. System computes variance against book stock. Discrepancies above threshold require manager sign-off. Adjustments posted as ADJUSTMENT movements, triggering shrinkage reporting.</p>
+
+    <h3>3 — Branch Manager Dashboard</h3>
+    <p>Single-page overview showing: today's revenue vs target, top 10 sellers, low-stock alerts, expiry risks in next 30/60 days, pending transfer requests, and staff attendance. All charts are clickable drill-downs. AI insight panel shows one recommended action per day (e.g., "Order 40 units of Cetrizine — stockout likely in 4 days based on current velocity").</p>
+
+    <h3>Responsive UI Breakpoints</h3>
+    <div class="two-col">
+      <div class="card">
+        <h4>Mobile (&lt;480px) — Counter Staff POS</h4>
+        <p>Large touch targets (min 44px). Barcode scanner integration via device camera API. Numeric keypad for quantity entry. Basket visible via slide-up drawer. Offline indicator prominently shown in header.</p>
+      </div>
+      <div class="card">
+        <h4>Tablet (768px) — Branch floor use</h4>
+        <p>Split-view: product search left, basket right. Swipe gestures for common actions. Optimised for landscape orientation. Full stock lookup without leaving POS context.</p>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <h4>Desktop (1024px+) — Manager & Admin</h4>
+        <p>Full sidebar navigation. Multi-panel dashboards. Data tables with sortable columns, export to CSV/Excel. Keyboard shortcuts for power users. Multi-branch view for admin.</p>
+      </div>
+      <div class="card">
+        <h4>Offline indicator</h4>
+        <p>Persistent banner when network unavailable. Transaction counter shows pending syncs. Estimated sync time shown on reconnect. Yellow = degraded (slow), Red = offline, Green = connected.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Offline Sync -->
+  <section id="offline">
+    <div class="section-label">Section 07</div>
+    <h2>Offline Sync Strategy</h2>
+
+    <div class="callout callout-amber">
+      <strong>Operational requirement</strong>
+      <p>Several MediSphere branches have intermittent 2G/3G connectivity. The platform must continue handling OTC sales, stock lookups, and basic billing during disconnection. Reconnect sync must be safe, conflict-free for most operations, and transparent to staff.</p>
+    </div>
+
+    <h3>Architecture</h3>
+    <p>The offline strategy uses a <strong>three-layer approach</strong>: (1) a local SQLite database embedded in the PWA Service Worker via <code>sql.js-httpvfs</code> or <code>wa-sqlite</code>, (2) a client-side operation queue in IndexedDB, and (3) a server-side sync service that applies and reconciles operations on reconnect.</p>
+
+    <div class="sync-step">
+      <div class="sync-num">1</div>
+      <div class="sync-content">
+        <h4>Local read model</h4>
+        <p>At startup (or last successful sync), the PWA downloads a compressed SQLite snapshot of the branch's product catalogue, current stock levels, active pricing, and user session data. This snapshot is refreshed every 4 hours when online. Size target: &lt;15 MB per branch.</p>
+      </div>
+    </div>
+    <div class="sync-step">
+      <div class="sync-num">2</div>
+      <div class="sync-content">
+        <h4>Offline operation queue</h4>
+        <p>Every mutation (sale, adjustment, return) is recorded as a serialised operation with: <code>offline_id</code> (UUID v7), <code>type</code>, <code>payload</code>, <code>user_id</code>, <code>branch_id</code>, <code>device_time</code>, <code>sequence_no</code>. Operations are written to IndexedDB atomically before UI confirmation.</p>
+      </div>
+    </div>
+    <div class="sync-step">
+      <div class="sync-num">3</div>
+      <div class="sync-content">
+        <h4>Degraded mode guardrails</h4>
+        <p>Controlled substances: dispensing blocked offline (regulatory requirement). Rx sales: allowed offline only for pre-verified prescriptions cached locally. Stock adjustments: buffered, but no new purchase orders can be raised offline. Inter-branch transfers: queued, dispatched on reconnect.</p>
+      </div>
+    </div>
+    <div class="sync-step">
+      <div class="sync-num">4</div>
+      <div class="sync-content">
+        <h4>Sync-on-reconnect</h4>
+        <p>On network restoration, the PWA posts the operation queue to <code>POST /api/v1/sync/apply</code>. The sync service applies operations in sequence-number order using <strong>last-write-wins for prices</strong> (server authoritative) and <strong>additive merge for stock movements</strong> (all movements applied, stock recalculated). Conflicts (e.g., selling an item another branch also sold offline) surface as manager alerts, not silent overwrites.</p>
+      </div>
+    </div>
+    <div class="sync-step">
+      <div class="sync-num">5</div>
+      <div class="sync-content">
+        <h4>Idempotency</h4>
+        <p>All sync operations use the <code>offline_id</code> as an idempotency key. The server stores processed <code>offline_id</code>s in a deduplication table (TTL 7 days). Re-submitting the same operation is safe. Network failures during sync are retried with exponential backoff (max 5 attempts, then manual resolution queue).</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+<span class="cm"># sync_svc/apply.py — conflict resolution logic</span><br>
+<span class="kw">async def</span> <span class="fn">apply_offline_operations</span>(ops: list[<span class="cls">OfflineOperation</span>]) -> <span class="cls">SyncResult</span>:<br>
+    conflicts = []<br>
+    applied = []<br>
+    <span class="kw">for</span> op <span class="kw">in</span> sorted(ops, key=<span class="kw">lambda</span> x: x.sequence_no):<br>
+        <span class="kw">if</span> <span class="kw">await</span> dedup_store.exists(op.offline_id):<br>
+            <span class="kw">continue</span>  <span class="cm"># already applied — idempotent skip</span><br>
+        result = <span class="kw">await</span> apply_single(op)<br>
+        <span class="kw">if</span> result.conflict:<br>
+            conflicts.append(result)  <span class="cm"># surface to manager, don't block other ops</span><br>
+        <span class="kw">else</span>:<br>
+            applied.append(result)<br>
+            <span class="kw">await</span> dedup_store.mark(op.offline_id)<br>
+    <span class="kw">return</span> <span class="cls">SyncResult</span>(applied=applied, conflicts=conflicts)<br>
+    </div>
+  </section>
+
+  <!-- 8. AI Features -->
+  <section id="ai">
+    <div class="section-label">Section 08</div>
+    <h2>AI &amp; Analytics Features</h2>
+
+    <p>All AI features follow a <strong>human-in-the-loop</strong> design: the system recommends, the human decides. No AI action is irreversible without explicit user confirmation. All model outputs include an explanation and a confidence score. Staff can override any AI recommendation with a mandatory reason code (recorded to audit log).</p>
+
+    <div class="ai-card">
+      <h4>Demand Forecasting</h4>
+      <p>Prophet-based time-series model trained per SKU per branch, updated weekly via Celery scheduled task. Features include: historical sales (52 weeks), seasonality (festivals, flu season), promotions, regional weather proxy. Output: 30/60/90-day demand forecast with confidence intervals, fed into reorder point calculation.</p>
+      <div>
+        <span class="guardrail">Confidence threshold: 65%</span>
+        <span class="guardrail">Human override: always</span>
+        <span class="guardrail">Explanation: feature importance shown</span>
+        <span class="guardrail">Audit: every suggestion logged</span>
+      </div>
+    </div>
+
+    <div class="ai-card">
+      <h4>Substitution Recommendations</h4>
+      <p>When a product is out of stock, the system suggests therapeutically equivalent alternatives ranked by: clinical equivalence score (static knowledge base), current stock availability, price proximity, and historic acceptance rate. Displayed at POS with pharmacist confirmation required for Rx substitutions.</p>
+      <div>
+        <span class="guardrail">Rx: pharmacist must confirm</span>
+        <span class="guardrail">OTC: counter staff can accept</span>
+        <span class="guardrail">No substitution for controlled drugs</span>
+      </div>
+    </div>
+
+    <div class="ai-card">
+      <h4>Anomaly Detection</h4>
+      <p>Isolation Forest model trained on transaction patterns (sale velocity, return rate, discount usage, quantity per transaction, time-of-day distribution). Flags suspicious patterns: unusually high returns, excessive discounts, off-hours bulk OTC sales (possible diversion), rapid stock reduction without corresponding sales. Alerts go to pharmacy_admin only — not visible to the implicated staff member.</p>
+      <div>
+        <span class="guardrail">Alert: admin only</span>
+        <span class="guardrail">False positive rate monitored</span>
+        <span class="guardrail">No automatic action</span>
+        <span class="guardrail">Weekly model retrain</span>
+      </div>
+    </div>
+
+    <div class="ai-card">
+      <h4>Conversational Query (NL → SQL)</h4>
+      <p>Claude-powered natural language interface for operational data. User types a question; the system constructs a safe, read-only SQL query against the analytics read model, executes it, and returns the result with the SQL displayed for transparency. Queries are scoped by the user's branch_id by default. Prompt injection defended by schema-aware SQL generation with allow-listed tables and enforced WHERE clauses.</p>
+      <div>
+        <span class="guardrail">Read-only SQL only</span>
+        <span class="guardrail">SQL always shown to user</span>
+        <span class="guardrail">Branch-scoped by default</span>
+        <span class="guardrail">No DDL/DML permitted</span>
+        <span class="guardrail">Rate limited: 30 queries/hour</span>
+      </div>
+    </div>
+
+    <h3>AI Guardrail Architecture</h3>
+    <div class="code-block">
+<span class="cm"># ai/guardrails.py — defence layers for NL query</span><br>
+<span class="cls">ALLOWED_TABLES</span> = {<span class="str">"products"</span>, <span class="str">"stock_levels_mv"</span>, <span class="str">"sales_summary"</span>, ...}<br>
+<span class="cls">FORBIDDEN_KEYWORDS</span> = {<span class="str">"DROP"</span>, <span class="str">"DELETE"</span>, <span class="str">"INSERT"</span>, <span class="str">"UPDATE"</span>, <span class="str">"TRUNCATE"</span>, <span class="str">"--"</span>}<br>
+
+<span class="kw">def</span> <span class="fn">validate_generated_sql</span>(sql: str, user: <span class="cls">User</span>) -> <span class="cls">ValidationResult</span>:<br>
+    parsed = <span class="fn">sqlparse.parse</span>(sql)[<span class="num">0</span>]<br>
+    <span class="kw">if</span> parsed.get_type() != <span class="str">"SELECT"</span>: <span class="kw">raise</span> <span class="cls">ForbiddenQuery</span><br>
+    tables = <span class="fn">extract_tables</span>(parsed)<br>
+    <span class="kw">if not</span> tables.issubset(<span class="cls">ALLOWED_TABLES</span>): <span class="kw">raise</span> <span class="cls">UnauthorisedTable</span><br>
+    <span class="kw">if</span> user.role != <span class="str">"pharmacy_admin"</span>:<br>
+        <span class="cm"># enforce branch isolation at SQL level</span><br>
+        sql = <span class="fn">inject_branch_filter</span>(sql, user.branch_id)<br>
+    <span class="kw">return</span> sql<br>
+    </div>
+  </section>
+
+  <!-- 9. BI Reports -->
+  <section id="bi">
+    <div class="section-label">Section 09</div>
+    <h2>BI Dashboards &amp; Reports</h2>
+
+    <p>Analytics are served from a <strong>DuckDB read model</strong> that consumes materialised views from PostgreSQL, refreshed every 5 minutes (or on-demand). This decouples reporting load from the operational database entirely. Metabase Community Edition provides the BI layer with custom dashboards embedded in the React shell via iframe + token.</p>
+
+    <h3>Standard Dashboard KPIs</h3>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-num">₹ Rev</div><div class="kpi-label">Daily revenue vs target</div></div>
+      <div class="kpi"><div class="kpi-num">Fill %</div><div class="kpi-label">Prescription fill rate</div></div>
+      <div class="kpi"><div class="kpi-num">Shrink</div><div class="kpi-label">Shrinkage by category</div></div>
+      <div class="kpi"><div class="kpi-num">Expiry</div><div class="kpi-label">Units expiring &lt;30 days</div></div>
+      <div class="kpi"><div class="kpi-num">Txn/h</div><div class="kpi-label">Transactions per hour / staff</div></div>
+      <div class="kpi"><div class="kpi-num">OOS %</div><div class="kpi-label">Out-of-stock incidents</div></div>
+      <div class="kpi"><div class="kpi-num">Return</div><div class="kpi-label">Return rate by product</div></div>
+      <div class="kpi"><div class="kpi-num">Transfer</div><div class="kpi-label">Inter-branch transfer fulfilment time</div></div>
+    </div>
+
+    <h3>Report Types</h3>
+    <table class="svc-table">
+      <thead><tr><th>Report</th><th>Frequency</th><th>Audience</th><th>Delivery</th></tr></thead>
+      <tbody>
+        <tr><td>Daily revenue summary</td><td>Daily 23:00</td><td>Branch manager, admin</td><td>Email PDF + dashboard</td></tr>
+        <tr><td>Low-stock alert</td><td>Every 4h</td><td>Inventory controller</td><td>In-app notification + email</td></tr>
+        <tr><td>Expiry risk report</td><td>Weekly Monday</td><td>Branch manager</td><td>Dashboard + email</td></tr>
+        <tr><td>Shrinkage analysis</td><td>Monthly</td><td>Pharmacy admin</td><td>Dashboard export</td></tr>
+        <tr><td>Staff productivity</td><td>Weekly</td><td>Branch manager</td><td>Dashboard</td></tr>
+        <tr><td>Anomaly alerts</td><td>Real-time</td><td>Pharmacy admin only</td><td>In-app push</td></tr>
+        <tr><td>Controlled substance dispensing</td><td>Daily</td><td>Pharmacy admin, auditor</td><td>Locked PDF (read-only)</td></tr>
+        <tr><td>Demand forecast accuracy</td><td>Monthly</td><td>Admin</td><td>AI performance dashboard</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 10. NFR -->
+  <section id="nfr">
+    <div class="section-label">Section 10</div>
+    <h2>Non-Functional Requirements</h2>
+
+    <div class="nfr-grid">
+      <div class="nfr-card">
+        <h4><span class="nfr-dot" style="background:var(--teal)"></span> Performance</h4>
+        <p>POS hold endpoint: p99 &lt;200ms. Product search: p99 &lt;150ms. Dashboard load: p95 &lt;2s. All API responses &lt;500ms p99 under normal load. Redis caches product catalogue and stock levels with 5-min TTL.</p>
+      </div>
+      <div class="nfr-card">
+        <h4><span class="nfr-dot" style="background:var(--purple)"></span> Scalability</h4>
+        <p>Kubernetes HPA on all stateless services (CPU &gt;70% → scale out). Peak evening traffic (6–9 PM): target 3× normal throughput. Seasonal surge (flu season, Diwali): pre-scale via scheduled HPA. DuckDB read replica scales independently from transactional DB.</p>
+      </div>
+      <div class="nfr-card">
+        <h4><span class="nfr-dot" style="background:var(--amber)"></span> Reliability</h4>
+        <p>Target 99.5% uptime (allows ~44h/year maintenance). Postgres primary + 1 hot standby + 1 read replica. Automatic failover via Patroni (&lt;30s RTO). Redis Sentinel for HA. Circuit breakers (Tenacity) on all inter-service calls.</p>
+      </div>
+      <div class="nfr-card">
+        <h4><span class="nfr-dot" style="background:var(--red)"></span> Security</h4>
+        <p>OWASP Top 10 baseline. Penetration test before go-live. Dependency scanning via Dependabot + pip-audit in CI. Secrets via Vault. No customer PII in application logs. WAF (ModSecurity) on Nginx edge.</p>
+      </div>
+      <div class="nfr-card">
+        <h4><span class="nfr-dot" style="background:var(--blue)"></span> Observability</h4>
+        <p>Structured JSON logs (structlog) shipped to ELK. Prometheus metrics on all services (request rate, error rate, latency histograms). Distributed tracing via OpenTelemetry + Jaeger. Grafana dashboards per service + per KPI. Alertmanager PagerDuty integration.</p>
+      </div>
+      <div class="nfr-card">
+        <h4><span class="nfr-dot" style="background:var(--coral)"></span> Compliance</h4>
+        <p>Patient data handling compliant with applicable health data regulations (DPDP Act for India). Prescription images stored encrypted, accessed only by authorised roles, purged per retention policy. Audit trail immutable, exportable for regulatory inspection.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. Deployment -->
+  <section id="deploy">
+    <div class="section-label">Section 11</div>
+    <h2>Deployment &amp; Infrastructure</h2>
+
+    <h3>Stack Summary</h3>
+    <table class="svc-table">
+      <thead><tr><th>Layer</th><th>Technology</th><th>Rationale</th></tr></thead>
+      <tbody>
+        <tr><td>Container runtime</td><td>Docker + Kubernetes (k3s for small deployments)</td><td>Standard, easy for small team; k3s reduces ops overhead</td></tr>
+        <tr><td>API services</td><td>FastAPI + Uvicorn + Gunicorn</td><td>Python-native, OpenAPI out of the box, async I/O</td></tr>
+        <tr><td>Task workers</td><td>Celery + Redis broker</td><td>Scheduled jobs, async email/PDF, model training triggers</td></tr>
+        <tr><td>Edge / reverse proxy</td><td>Nginx + Certbot</td><td>TLS termination, rate limiting, static file serving</td></tr>
+        <tr><td>Primary database</td><td>PostgreSQL 16 + Patroni</td><td>ACID, JSON support, RLS, partitioning, proven reliability</td></tr>
+        <tr><td>Cache / event bus</td><td>Redis 7 (Streams + Pub/Sub + Cache)</td><td>Single technology for three use cases reduces stack</td></tr>
+        <tr><td>Object storage</td><td>MinIO (self-hosted) or S3-compatible cloud</td><td>Prescription images, receipts, exports</td></tr>
+        <tr><td>BI / Analytics</td><td>Metabase CE + DuckDB</td><td>Open-source, embeddable, no per-seat cost</td></tr>
+        <tr><td>CI/CD</td><td>GitHub Actions + Docker Hub</td><td>Free for private repos, integrated with team workflow</td></tr>
+        <tr><td>Monitoring</td><td>Prometheus + Grafana + Alertmanager</td><td>Open-source, battle-tested, Kubernetes-native</td></tr>
+        <tr><td>Secrets</td><td>HashiCorp Vault (or cloud KMS)</td><td>Single secrets plane; no secrets in code or env files</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Deployment Topology</h3>
+    <p>Production runs on a managed Kubernetes cluster (EKS/GKE/AKS depending on provider). Each microservice is a separate Deployment with its own Horizontal Pod Autoscaler. The PostgreSQL cluster runs on dedicated VMs (not Kubernetes) for operational simplicity. All branch devices (tablets, POS terminals) are thin PWA clients — no server software on-premises, making branch IT overhead near-zero.</p>
+
+    <div class="callout callout-teal">
+      <strong>Small team consideration</strong>
+      <p>With a small engineering team, avoid operational complexity: one Kubernetes cluster, one PostgreSQL cluster with schemas (not databases), one Redis cluster. Use managed services where available. Run Metabase as a sidecar, not a separate cluster. Consolidate logs in ELK rather than multiple tools.</p>
+    </div>
+
+    <h3>CI/CD Pipeline</h3>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-icon">1</div><div class="flow-text"><h4>Push / PR</h4><p>Lint (ruff), type check (mypy), unit tests (pytest). Dependency security scan (pip-audit). Docker build + push to registry on merge to main.</p></div></div>
+      <div class="flow-step"><div class="flow-icon">2</div><div class="flow-text"><h4>Staging deploy</h4><p>Auto-deploy to staging on merge. Integration tests run against staging (pytest + httpx). DB migrations applied via Alembic. Smoke tests confirm all health endpoints.</p></div></div>
+      <div class="flow-step"><div class="flow-icon">3</div><div class="flow-text"><h4>Production deploy</h4><p>Manual approval gate. Rolling update (zero downtime). Canary traffic split (10% → 50% → 100%) with automatic rollback on error rate spike. DB migration applied pre-deploy (backward-compatible only).</p></div></div>
+    </div>
+  </section>
+
+  <!-- 12. Testing -->
+  <section id="testing">
+    <div class="section-label">Section 12</div>
+    <h2>Testing &amp; Observability Plan</h2>
+
+    <h3>Testing Strategy</h3>
+    <div class="card-grid">
+      <div class="card card-accent card-teal">
+        <h4>Unit tests (pytest)</h4>
+        <p>Business logic: inventory calculations, FEFO lot selection, pricing, discount rules. Target 80% coverage on core service logic. All AI model decision boundaries unit-tested with fixture data.</p>
+      </div>
+      <div class="card card-accent card-purple">
+        <h4>Integration tests (pytest + httpx)</h4>
+        <p>Full API round-trips against a test PostgreSQL instance. RBAC matrix fully tested — every role/endpoint combination. Offline sync scenarios tested using mock network layer.</p>
+      </div>
+      <div class="card card-accent card-amber">
+        <h4>E2E tests (Playwright)</h4>
+        <p>Critical user journeys: POS sale, Rx dispensing, stock transfer, manager dashboard. Run nightly against staging. Mobile viewport tested explicitly (375px, 768px). Offline mode tested via Playwright's network interception.</p>
+      </div>
+      <div class="card card-accent card-coral">
+        <h4>Load tests (Locust)</h4>
+        <p>Simulated peak evening load: 200 concurrent POS transactions across 42 branches. Ramp from 10 to 200 users over 10 minutes. Measure p99 latency. Run monthly and before seasonal periods.</p>
+      </div>
+    </div>
+
+    <h3>Observability</h3>
+    <ul class="check-list">
+      <li>All FastAPI services export Prometheus metrics via <code>/metrics</code>: request count, error rate, latency histogram, active DB connections.</li>
+      <li>Structured JSON logs with <code>trace_id</code>, <code>span_id</code>, <code>user_id</code>, <code>branch_id</code>, <code>session_id</code> on every log line — enables per-session audit trail debugging.</li>
+      <li>OpenTelemetry auto-instrumentation on all services; traces exported to Jaeger. Full end-to-end trace from browser → gateway → service → DB.</li>
+      <li>Custom Grafana dashboards: POS transaction rate, inventory adjustment spike detection, sync queue depth (offline branches), AI model inference latency.</li>
+      <li>SLO monitoring: 99.5% uptime, p99 &lt;500ms error budget tracked weekly. Burn rate alerting via Alertmanager.</li>
+      <li>Offline branch health dashboard: shows last sync time per branch, queue depth, conflict count. Operations team can see at a glance which branches need attention.</li>
+    </ul>
+
+    <div class="callout callout-teal">
+      <strong>Implementation phasing recommendation</strong>
+      <p>Phase 1 (months 1–3): Auth, Inventory, POS, basic offline mode, 5 pilot branches. Phase 2 (months 4–6): Replenishment, Prescription, BI dashboards, all 42 branches. Phase 3 (months 7–9): AI features (demand forecast, anomaly detection, NL query), telehealth fulfilment. This lets the team validate the data model and sync strategy before adding AI complexity.</p>
+    </div>
+
+    <h3>Key Risks &amp; Mitigations</h3>
+    <table class="svc-table">
+      <thead><tr><th>Risk</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td>Offline sync conflicts causing stock discrepancy</td><td><span class="pill pill-amber">Medium</span></td><td>Additive stock ledger never loses data; conflicts surfaced to manager not silently resolved</td></tr>
+        <tr><td>AI demand forecast accuracy degrades seasonally</td><td><span class="pill pill-amber">Medium</span></td><td>Weekly retraining; human can override reorder points; accuracy KPI monitored on BI dashboard</td></tr>
+        <tr><td>Controlled substance compliance breach</td><td><span class="pill pill-red">High impact</span></td><td>Dispensing blocked offline; dual-control enforced; immutable audit log; daily compliance report</td></tr>
+        <tr><td>PII data breach</td><td><span class="pill pill-amber">Medium</span></td><td>AES-256 at rest, mTLS in transit, RLS at DB, minimum data retention, WAF at edge</td></tr>
+        <tr><td>Single-team engineering bottleneck</td><td><span class="pill pill-amber">Medium</span></td><td>Same stack across all services; shared libraries; clear service contracts; comprehensive runbooks</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Footer -->
+  <div style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--rule);text-align:center;font-size:12px;color:var(--ink3);padding-bottom:2rem;">
+    MediSphere Health · Omni-Channel Pharmacy Operations Platform · Solution Design v1.0 · Confidential
+  </div>
+
+</div>
+
+<script>
+  // Highlight active nav item on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
